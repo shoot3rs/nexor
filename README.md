@@ -1,7 +1,8 @@
 # Nexor
 A shooter package for handling events with nats jetstream
 
-Example usage for publishing an event
+### Publishing events
+An example of publishing an event is shown below:
 
 ```go
 package main
@@ -58,7 +59,8 @@ func main() {
 }
 ```
 
-Example usage for subscribing to an event
+### Subscribing to events
+An example of subscribing to events is shown below:
 
 ```go
 package main
@@ -113,4 +115,17 @@ func main() {
 	select {}
 }
 
+```
+
+### Environment variables:
+The default parameters can be overridden by setting the following environment variables:
+
+```text
+NEXOR.CLIENT=Nexor
+NEXOR.DEBUG=false
+NEXOR.URL=nats://localhost:4222
+NEXOR.STREAM_NAME=inventory_events
+NEXOR.STREAM_SUBJECTS_NAME=inventory.*
+NEXOR.MAX_CONNECTIONS=5
+NEXOR.MAX_RECONNECT_WAIT=5
 ```

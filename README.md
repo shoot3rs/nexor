@@ -10,7 +10,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"github.com/shoot3rs/nexor"
@@ -20,16 +19,22 @@ import (
 	"time"
 )
 
+var (
+	client = nexor.New("nats://localhost:4222")
+)
+
+func init() {
+	client.Connect()
+}
+
 func main() {
 	// Initialize the event bus
-	bus, err := nexor.New("nats://localhost:4222")
-	if err != nil {
-		log.Fatalf("Failed to connect to NATS: %v", err)
-	}
-	js := bus.JetStream()
+	eventBus := client.GetEngine()
+	js := eventBus.JetStream()
+	defer eventBus.Close()
 
 	// Create a stream (e.g. product.*)
-	_, err = js.AddStream(&nats.StreamConfig{
+	_, err := js.AddStream(&nats.StreamConfig{
 		Name:     "PRODUCT_EVENTS",
 		Subjects: []string{"product.*"},
 		Storage:  nats.FileStorage,
@@ -39,24 +44,32 @@ func main() {
 	}
 
 	for {
+		// Get the current time
+		currentTime := time.Now()
+		// List of sample words
+		words := []string{"Apple", "Banana", "Orange", "Mango", "Grape", "Peach", "Plum", "Cherry", "Lemon", "Lime"}
+		// Generate a random word
+		randomWord := words[currentTime.UnixNano()%int64(len(words))]
+
 		// Create a ProductCreated event
 		event := &v1.ProductCreated{
 			Id:         uuid.NewString(),
-			Name:       faker.Word(),
+			Name:       randomWord,
 			SupplierId: uuid.NewString(),
-			CreatedAt:  faker.UnixTime(),
+			CreatedAt:  currentTime.UnixMilli(),
 		}
 
 		// Publish the event
-		if err := bus.Publish(context.Background(), "product.created", event); err != nil {
+		if err := eventBus.Publish(context.Background(), "product.created", event); err != nil {
 			log.Fatalf("Failed to publish event: %v", err)
 		}
 
 		fmt.Println("🚀 Event published successfully! 🚀")
 
-		time.Sleep(time.Duration(10) * time.Second)
+		time.Sleep(time.Duration(5) * time.Second)
 	}
 }
+
 ```
 
 ### Subscribing to events
@@ -75,16 +88,21 @@ import (
 	"log"
 )
 
+var (
+	client = nexor.New("nats://localhost:4222")
+)
+
+func init() {
+	client.Connect()
+}
+
 func main() {
 	// Initialize the event bus
-	bus, err := nexor.New("nats://localhost:4222")
-	if err != nil {
-		log.Fatalf("Failed to connect to NATS: %v", err)
-	}
-	defer bus.Close()
+	eventBus := client.GetEngine()
+	defer eventBus.Close()
 
 	// Subscribe to the "product.created" event
-	err = bus.Subscribe("product.created", "product_created_consumer", func() proto.Message {
+	err := eventBus.Subscribe("product.created", "product_created_consumer", func() proto.Message {
 		return &v1.ProductCreated{} // Factory method to create a specific event type
 	}, func(ctx context.Context, msg proto.Message, m *nats.Msg) error {
 		log.Println("🔥 event received via subject:", m.Subject)
@@ -114,7 +132,6 @@ func main() {
 	log.Println("🚀 waiting for events...")
 	select {}
 }
-
 ```
 
 ### Environment variables:
@@ -124,8 +141,6 @@ The default parameters can be overridden by setting the following environment va
 NEXOR.CLIENT=Nexor
 NEXOR.DEBUG=false
 NEXOR.URL=nats://localhost:4222
-NEXOR.STREAM_NAME=inventory_events
-NEXOR.STREAM_SUBJECTS_NAME=inventory.*
 NEXOR.MAX_CONNECTIONS=5
 NEXOR.MAX_RECONNECT_WAIT=5
 ```

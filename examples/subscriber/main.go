@@ -10,16 +10,21 @@ import (
 	"log"
 )
 
+var (
+	client = nexor.New("nats://localhost:4222")
+)
+
+func init() {
+	client.Connect()
+}
+
 func main() {
 	// Initialize the event bus
-	bus, err := nexor.New("nats://localhost:4222")
-	if err != nil {
-		log.Fatalf("Failed to connect to NATS: %v", err)
-	}
-	defer bus.Close()
+	eventBus := client.GetEngine()
+	defer eventBus.Close()
 
 	// Subscribe to the "product.created" event
-	err = bus.Subscribe("product.created", "product_created_consumer", func() proto.Message {
+	err := eventBus.Subscribe("product.created", "product_created_consumer", func() proto.Message {
 		return &v1.ProductCreated{} // Factory method to create a specific event type
 	}, func(ctx context.Context, msg proto.Message, m *nats.Msg) error {
 		log.Println("🔥 event received via subject:", m.Subject)

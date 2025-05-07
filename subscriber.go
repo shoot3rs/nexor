@@ -43,7 +43,7 @@ type Subscriber interface {
 //
 // Returns:
 //   - error: Returns an error if the subscription setup fails
-func (n *Nexor) Subscribe(
+func (n *nexor) Subscribe(
 	subject string,
 	durable string,
 	factory func() proto.Message,
@@ -61,7 +61,7 @@ func (n *Nexor) Subscribe(
 	opts = append(defaultOpts, opts...)
 
 	// Subscribe to the subject with the provided options
-	sub, err := n.js.Subscribe(subject, func(m *nats.Msg) {
+	_, err := n.js.Subscribe(subject, func(m *nats.Msg) {
 		// Create a new instance of the protobuf message
 		msg := factory()
 		if err := proto.Unmarshal(m.Data, msg); err != nil {
@@ -92,7 +92,7 @@ func (n *Nexor) Subscribe(
 	}
 
 	if n.cfg.Debug {
-		log.Printf("🚀 nexor: successfully subscribed to subject: %s", sub.Subject)
+		log.Printf("🚀 nexor: successfully subscribed to subject: %s", subject)
 	}
 
 	return err

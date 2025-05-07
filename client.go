@@ -4,27 +4,73 @@
 package nexor
 
 import (
+	"context"
 	"github.com/nats-io/nats.go"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"os"
 	"strconv"
 	"time"
 )
 
+type Client interface {
+	Publish(ctx context.Context, subject string, msg proto.Message, opts ...nats.PubOpt) error
+	Connect()
+	Subscribe(subject string, durable string, factory func() proto.Message, handler ProtoHandler, opts ...nats.SubOpt) error
+	JetStream() nats.JetStreamContext
+	Close()
+	GetEngine() *nexor
+}
+
 // Nexor represents a NATS client with JetStream support.
-type Nexor struct {
+type nexor struct {
 	conn *nats.Conn            // Connection to the NATS server
 	js   nats.JetStreamContext // JetStream context for pub/sub operations
 	cfg  *nexorConfig          // Configuration for the NATS client
 }
 
+func (n *nexor) GetEngine() *nexor {
+	return n
+}
+
+func (n *nexor) Connect() {
+	conn, err := nats.Connect(n.cfg.Url, n.cfg.Opts...)
+	if err != nil {
+		if n.cfg.Debug {
+			log.Printf("🔌 Failed to connect to NATS: %v 🔌\n\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+	}
+
+	js, err := conn.JetStream()
+	if err != nil {
+		if n.cfg.Debug {
+			log.Printf("🔌 Failed to connect to Jetstream: %v 🔌", err)
+			os.Exit(1)
+		}
+
+		conn.Close()
+		os.Exit(1)
+	}
+
+	n.conn = conn
+	n.js = js
+
+	if n.cfg.Debug {
+		log.Printf("🚀 Connected to NATS server successful 🚀\n")
+	}
+}
+
 // nexorConfig holds the configuration parameters for the NATS client.
 type nexorConfig struct {
-	ClientName string // Name of the client used for connection identification
-	Debug      bool   // Enable debug mode for verbose logging
-	MaxConn    int    // Maximum number of allowed connections
-	MaxRecon   int    // Maximum number of reconnection attempts
-	ReconWait  int    // Time to wait between reconnection attempts in seconds
+	Url        string        // Url is the address of the NATS server for client connection.
+	ClientName string        // Name of the client used for connection identification
+	Debug      bool          // Enable debug mode for verbose logging
+	MaxConn    int           // Maximum number of allowed connections
+	MaxRecon   int           // Maximum number of reconnection attempts
+	ReconWait  int           // Time to wait between reconnection attempts in seconds
+	Opts       []nats.Option // Opts specifies additional NATS options for configuring the client connection or behavior.
 }
 
 // getConfig retrieves the configuration from environment variables and returns
@@ -65,8 +111,11 @@ func getConfig() *nexorConfig {
 // It accepts a URL string and optional NATS options. If no options are provided,
 // it uses default configuration values from environment variables.
 // Returns a configured Nexor instance and any error encountered during connection.
-func New(url string, opts ...nats.Option) (*Nexor, error) {
+func New(url string, opts ...nats.Option) Client {
 	cfg := getConfig()
+	cfg.Url = url
+	cfg.Opts = opts
+
 	if len(opts) == 0 {
 		opts = []nats.Option{
 			nats.Name(cfg.ClientName),
@@ -75,36 +124,11 @@ func New(url string, opts ...nats.Option) (*Nexor, error) {
 		}
 	}
 
-	conn, err := nats.Connect(url, opts...)
-	if err != nil {
-		if cfg.Debug {
-			log.Printf("🔌 Failed to connect to NATS: %v 🔌\n\n", err)
-			os.Exit(1)
-		}
-
-		return nil, err
-	}
-
-	js, err := conn.JetStream()
-	if err != nil {
-		if cfg.Debug {
-			log.Printf("🔌 Failed to connect to Jetstream: %v 🔌", err)
-			os.Exit(1)
-		}
-
-		conn.Close()
-		return nil, err
-	}
-
-	if cfg.Debug {
-		log.Printf("🚀 Connected to NATS server successful 🚀\n")
-	}
-
-	return &Nexor{conn: conn, js: js, cfg: cfg}, nil
+	return &nexor{cfg: cfg}
 }
 
 // Close safely closes the NATS connection.
-func (n *Nexor) Close() {
+func (n *nexor) Close() {
 	if n.conn != nil && !n.conn.IsClosed() {
 		n.conn.Close()
 	}
@@ -112,6 +136,6 @@ func (n *Nexor) Close() {
 
 // JetStream exposes the underlying JetStream context
 // so that microservices can create/manage streams and consumers.
-func (n *Nexor) JetStream() nats.JetStreamContext {
+func (n *nexor) JetStream() nats.JetStreamContext {
 	return n.js
 }

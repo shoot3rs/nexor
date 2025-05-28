@@ -89,6 +89,94 @@ func (x *ProductCreated) GetCreatedAt() int64 {
 	return 0
 }
 
+type SayHelloRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SayHelloRequest) Reset() {
+	*x = SayHelloRequest{}
+	mi := &file_shooters_nexor_v1_nexor_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SayHelloRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloRequest) ProtoMessage() {}
+
+func (x *SayHelloRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shooters_nexor_v1_nexor_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloRequest) Descriptor() ([]byte, []int) {
+	return file_shooters_nexor_v1_nexor_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SayHelloRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type SayHelloResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SayHelloResponse) Reset() {
+	*x = SayHelloResponse{}
+	mi := &file_shooters_nexor_v1_nexor_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SayHelloResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloResponse) ProtoMessage() {}
+
+func (x *SayHelloResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_shooters_nexor_v1_nexor_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloResponse) Descriptor() ([]byte, []int) {
+	return file_shooters_nexor_v1_nexor_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SayHelloResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_shooters_nexor_v1_nexor_proto protoreflect.FileDescriptor
 
 const file_shooters_nexor_v1_nexor_proto_rawDesc = "" +
@@ -100,7 +188,11 @@ const file_shooters_nexor_v1_nexor_proto_rawDesc = "" +
 	"\vsupplier_id\x18\x03 \x01(\tR\n" +
 	"supplierId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\x03R\tcreatedAtB\xba\x01\n" +
+	"created_at\x18\x04 \x01(\x03R\tcreatedAt\"%\n" +
+	"\x0fSayHelloRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\",\n" +
+	"\x10SayHelloResponse\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageB\xba\x01\n" +
 	"\x15com.shooters.nexor.v1B\n" +
 	"NexorProtoP\x01Z/github.com/shoot3rs/nexor/gen/shooters/nexor/v1\xa2\x02\x03SNX\xaa\x02\x11Shooters.Nexor.V1\xca\x02\x11Shooters\\Nexor\\V1\xe2\x02\x1dShooters\\Nexor\\V1\\GPBMetadata\xea\x02\x13Shooters::Nexor::V1b\x06proto3"
 
@@ -116,9 +208,11 @@ func file_shooters_nexor_v1_nexor_proto_rawDescGZIP() []byte {
 	return file_shooters_nexor_v1_nexor_proto_rawDescData
 }
 
-var file_shooters_nexor_v1_nexor_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_shooters_nexor_v1_nexor_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_shooters_nexor_v1_nexor_proto_goTypes = []any{
-	(*ProductCreated)(nil), // 0: shooters.nexor.v1.ProductCreated
+	(*ProductCreated)(nil),   // 0: shooters.nexor.v1.ProductCreated
+	(*SayHelloRequest)(nil),  // 1: shooters.nexor.v1.SayHelloRequest
+	(*SayHelloResponse)(nil), // 2: shooters.nexor.v1.SayHelloResponse
 }
 var file_shooters_nexor_v1_nexor_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -139,7 +233,7 @@ func file_shooters_nexor_v1_nexor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shooters_nexor_v1_nexor_proto_rawDesc), len(file_shooters_nexor_v1_nexor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

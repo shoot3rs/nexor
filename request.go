@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+type Requester interface {
+	Request(ctx context.Context, subject string, req proto.Message, factory func() proto.Message, timeout time.Duration) (proto.Message, error)
+}
+
 // Request sends a protobuf message as a request and waits for a protobuf reply.
 // - subject: The NATS subject to send the request to
 // - req: The protobuf message to send

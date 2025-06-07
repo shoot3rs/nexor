@@ -7,6 +7,10 @@ import (
 	"log"
 )
 
+type Replier interface {
+	Reply(subject string, reqFactory func() proto.Message, handler func(context.Context, proto.Message) (proto.Message, error)) error
+}
+
 // Reply sets up a handler that receives protobuf request messages and responds with protobuf replies.
 // - subject: Subject to listen for requests on
 // - reqFactory: Function that returns a new instance of the request message type

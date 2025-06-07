@@ -20,6 +20,8 @@ type Client interface {
 	JetStream() nats.JetStreamContext
 	Close()
 	GetEngine() *nexor
+	Request(ctx context.Context, subject string, req proto.Message, factory func() proto.Message, timeout time.Duration) (proto.Message, error)
+	Reply(subject string, reqFactory func() proto.Message, handler func(context.Context, proto.Message) (proto.Message, error)) error
 }
 
 // Nexor represents a NATS client with JetStream support.
